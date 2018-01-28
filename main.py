@@ -50,6 +50,23 @@ def parse(token):
     return out
 
 
+def insert_store_locs(path):
+    seek = None
+    save = []
+    index = len(path) - 1
+    for trans, state in path[::-1]:
+        if "RESTORE:" in trans:
+            seek = trans.split("RESTORE:")[1]
+        if state[0] == seek:
+            save.append(index)
+        index -= 1
+
+    for i, index in enumerate(save):
+        i += index
+        path.insert(i + 1, ('SAVE', path[i][1]))
+    return path
+
+
 def search(start, target, tokens):
     '''
     >>> search('1', '83', ['*9', '+2'])
@@ -68,7 +85,9 @@ def main():
     start = input()
     target = input()
     tokens = input().split(" ")
-    print(", ".join(func for func, state in search(start, target, tokens)))
+    print(", ".join(func
+                    for func, state
+                    in insert_store_locs(search(start, target, tokens))))
 
 
 if __name__ == '__main__':

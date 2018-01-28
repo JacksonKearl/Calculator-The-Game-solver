@@ -57,7 +57,7 @@ def paste():
                  (restore_val, state[0] + restore_val))
                 for restore_val in state[2]
                 if is_valid_state_combination(state[0], restore_val)]
-    inner.label = lambda state: 'RESTORE: ' + state[2][0]
+    inner.label = lambda state: 'RESTORE:' + state[2][0]
     return inner
 
 
