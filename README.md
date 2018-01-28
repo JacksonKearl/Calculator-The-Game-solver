@@ -4,8 +4,8 @@ Pathfinding solver for [Calculator: The Game](http://www.simplemachine.co/game/c
 
 Supports the enitre game's set of features (including memory, portals, and self-modifying buttons).
 
-![Game][Game.jpeg]
-![Use][Use.png]
+![Game](https://raw.githubusercontent.com/JacksonKearl/Calculator-The-Game-solver/master/Game.jpeg)
+![Use](https://raw.githubusercontent.com/JacksonKearl/Calculator-The-Game-solver/master/Use.png)
 ### Use
 From terminal:
 ```
