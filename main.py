@@ -135,10 +135,10 @@ def search(start, target, tokens, portal_params=None):
 
 
 def main():
-    start = input()
-    target = input()
-    tokens = input().split(" ")
-    possible_portal_params = input().split(" ")
+    start = input("start: ")
+    target = input("target: ")
+    tokens = input("keys: ").split()
+    possible_portal_params = input("portals: ").split()
     portal_params = ((int(possible_portal_params[0]), int(possible_portal_params[1]))
                      if len(possible_portal_params) == 2
                      else None)
