@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-from keys import shift, rev, mult, summer, rep, add, sub, div, dir, pow, rotL, rotR, mirror
+from keys import shift, rev, mult, summer, rep, add, sub, div, dir, pow, rotL, rotR, mirror, inc, negate
 from searchers import bfs
 
 
@@ -20,12 +20,15 @@ def parse(token):
     elif token == ">":
         out = rotR()
     elif token == "-":
-        out = mult(-1)
+        out = negate()
     elif token == "+":
         out = summer()
     elif "=>" in token:
         old, new = token.split("=>")
         out = rep(old, new)
+    elif "[+]" in token:
+        _, num = token.split("[+]")
+        out = inc(int(num))
     elif token[0] == "+":
         out = add(float(token[1:]))
     elif token[0] == "-":
@@ -39,13 +42,24 @@ def parse(token):
     else:
         out = dir(int(token))
 
-    out.__str__ = token
+    if not hasattr(out, 'label'):
+        out.label = lambda state: token
+
     return out
 
 
 def search(start, target, tokens):
+    '''
+    >>> search('1', '83', ['*9', '+2'])
+    [('*9', ('9', 0, ())), ('*9', ('81', 0, ())), ('+2', ('83', 0, ()))]
+    >>> search('0', '6', ['+5', '[+]1'])
+    [('[+]1', ('0', 1, ())), ('+6', ('6', 1, ()))]
+    '''
     transitions = [parse(token) for token in tokens]
-    return bfs(start, target, transitions)
+    return bfs((start, 0, ()),
+               target,
+               transitions,
+               lambda state, target: state[0] == target)
 
 
 def main():
@@ -55,15 +69,7 @@ def main():
     print(", ".join(func for func, state in search(start, target, tokens)))
 
 
-def test(start, target, tokens):
-    '''
-    >>> test('1', '89', ['*9', '+2'])
-    *9, *9, +2, +2, +2, +2
-    '''
-    print(", ".join(func for func, state in search(start, target, tokens)))
-
-
 if __name__ == '__main__':
-    # import doctest
-    # doctest.testmod()
+    import doctest
+    doctest.testmod()
     main()

@@ -2,7 +2,7 @@
 from collections import deque
 
 
-def bfs(start, target, transitions):
+def bfs(start, target, transitions, end_condition_met=lambda state, target: state == target):
     '''
     perfrom a bfs from start until target, where possible next states
     from a state s are given by [t(s) for t in transitions if t(s) is not None]
@@ -14,7 +14,7 @@ def bfs(start, target, transitions):
     read back the path found.
 
     >>> add1 = lambda x: x+1
-    >>> add1.__str__ = '+1'
+    >>> add1.label = lambda state: '+1'
     >>> bfs(1, 4, [add1])
     [('+1', 2), ('+1', 3), ('+1', 4)]
     '''
@@ -22,7 +22,7 @@ def bfs(start, target, transitions):
     backlinks = {start: None}
     while to_visit:
         current_state = to_visit.popleft()
-        next_states = set([(transition(current_state), transition.__str__)
+        next_states = set([(transition(current_state), transition.label(current_state))
                            for transition in transitions
                            if (transition(current_state) is not None
                                and transition(current_state) not in backlinks)])
@@ -30,9 +30,9 @@ def bfs(start, target, transitions):
         for next_state, transition in next_states:
             backlinks[next_state] = ((transition, next_state), current_state)
             to_visit.append(next_state)
-            if next_state == target:
+            if end_condition_met(next_state, target):
                 path = deque()
-                prev = backlinks[target]
+                prev = backlinks[next_state]
                 while prev:
                     path.appendleft(prev[0])
                     prev = backlinks[prev[1]]

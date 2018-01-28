@@ -69,29 +69,58 @@ def validate_num(to_validate):
         return None
 
 
+def unlock_state(func):
+    '''
+    "unlocks" state into modifiable format to pass
+    to a state-updating function, then locks back
+    up the return value for passing to places where
+    immutable state objects are needed (i.e. the BFS)
+    '''
+    def inner(state):
+        unlocked = list(state)
+        unlocked[2] = list(state[2])
+        func(unlocked)  # func modifies unlocked directly
+        unlocked[2] = tuple(unlocked[2])
+        locked = tuple(unlocked)
+        return locked
+    return inner
+
+
+def nullify_if_first_state_none(func):
+    def inner(state):
+        new_state = func(state)
+        if new_state[0] is None:
+            return None
+        return new_state
+    return inner
+
+
 def str_in(func):
     '''
     use this to wrap any function which deals with state as a string
     >>> @str_in
     ... def rev(state):
-    ...    return state[::-1]
+    ...    return (state[0][::-1], state[1], state[2])
     ...
-    >>> rev('123')
-    '321'
-    >>> rev('1.2')
-    '2.1'
-    >>> rev('22.1') is None
+    >>> rev(('123', 0, ()))
+    ('321', 0, ())
+    >>> rev(('1.2', 0, ()))
+    ('2.1', 0, ())
+    >>> rev(('22.1', 0, ())) is None
     True
     '''
+    @nullify_if_first_state_none
     def inner(state):
-        if func(state) is None:
-            return None
-        out = str(func(state))
-        if out == "" or out == "." or out == "-":
+        new_state = func(state)
+        if new_state[0] is None:
+            return (None,)
+
+        out = str(new_state[0])
+        if out == "" or out == "-":
             out = "0"
         if len(out) > 7:
-            return None
-        return validate_num(num(out))
+            return (None,)
+        return (validate_num(num(out)), new_state[1], new_state[2])
     return inner
 
 
@@ -99,19 +128,23 @@ def num_in(func):
     '''
     use this to wrap any function which deals with state as a number
     >>> @num_in
-    ... def div7(num):
-    ...    return num/7
+    ... def div7(state):
+    ...    return (state[0]/7, state[1], state[2])
     ...
-    >>> div7(7)
-    '1'
-    >>> div7(49)
-    '7'
-    >>> div7(8) is None
+    >>> div7((7, 0, ()))
+    ('1', 0, ())
+    >>> div7((49, 0, ()))
+    ('7', 0, ())
+    >>> div7((8, 0, ())) is None
     True
     '''
     @str_in
     def inner(state):
-        return validate_num(func(num(state)))
+        num_state = (num(state[0]), state[1], state[2])
+        new_state = func(num_state)
+        if new_state[0] is None:
+            return (None,)
+        return (validate_num(new_state[0]), new_state[1], new_state[2])
     return inner
 
 
@@ -121,8 +154,9 @@ def handle_negatives(func):
     passing to function, then reapply after
     '''
     def inner(state):
-        if state[0] == "-":
-            return "-" + func(state[1:])
+        if state[0][0] == "-":
+            new_state = func((state[0][1:], state[1], state[2]))
+            return ("-" + new_state[0], new_state[1], new_state[2])
         return func(state)
     return inner
 
