@@ -3,7 +3,6 @@
 Pathfinding solver for [Calculator: The Game](http://www.simplemachine.co/game/calculator-the-game/) by [Simple Machine](http://www.simplemachine.co).
 
 Supports the enitre game's set of features (including memory, portals, and self-modifying buttons).
-<img src="https://raw.githubusercontent.com/JacksonKearl/Calculator-The-Game-solver/Game.jpeg" width="200">
 ![Use](https://raw.githubusercontent.com/JacksonKearl/Calculator-The-Game-solver/master/Use.png)
 ### Use
 From terminal:
