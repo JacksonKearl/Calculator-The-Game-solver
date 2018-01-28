@@ -86,6 +86,18 @@ def unlock_state(func):
     return inner
 
 
+def manage_history(func):
+    '''
+    wraps a function to manage the history component of state.
+    Appends the state[0] output of the wrapped function to the state[2] 
+    history log
+    '''
+    def inner(state):
+        new_state = func(state)
+        return (new_state[0], new_state[1], new_state[2] + (new_state[0],))
+    return inner
+
+
 def nullify_if_first_state_none(func):
     def inner(state):
         new_state = func(state)
@@ -93,6 +105,10 @@ def nullify_if_first_state_none(func):
             return None
         return new_state
     return inner
+
+
+def general_state_management(func):
+    return nullify_if_first_state_none(manage_history(func))
 
 
 def str_in(func):
@@ -103,23 +119,23 @@ def str_in(func):
     ...    return (state[0][::-1], state[1], state[2])
     ...
     >>> rev(('123', 0, ()))
-    ('321', 0, ())
+    ('321', 0, ('321',))
     >>> rev(('1.2', 0, ()))
-    ('2.1', 0, ())
+    ('2.1', 0, ('2.1',))
     >>> rev(('22.1', 0, ())) is None
     True
     '''
-    @nullify_if_first_state_none
+    @general_state_management
     def inner(state):
         new_state = func(state)
         if new_state[0] is None:
-            return (None,)
+            return (None, state[1], state[2])
 
         out = str(new_state[0])
         if out == "" or out == "-":
             out = "0"
-        if len(out) > 7:
-            return (None,)
+        if len(out) > 6:
+            return (None, state[1], state[2])
         return (validate_num(num(out)), new_state[1], new_state[2])
     return inner
 
@@ -132,9 +148,9 @@ def num_in(func):
     ...    return (state[0]/7, state[1], state[2])
     ...
     >>> div7((7, 0, ()))
-    ('1', 0, ())
+    ('1', 0, ('1',))
     >>> div7((49, 0, ()))
-    ('7', 0, ())
+    ('7', 0, ('7',))
     >>> div7((8, 0, ())) is None
     True
     '''
@@ -143,7 +159,7 @@ def num_in(func):
         num_state = (num(state[0]), state[1], state[2])
         new_state = func(num_state)
         if new_state[0] is None:
-            return (None,)
+            return (None, state[1], state[2])
         return (validate_num(new_state[0]), new_state[1], new_state[2])
     return inner
 

@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-from keys import shift, rev, mult, summer, rep, add, sub, div, dir, pow, rotL, rotR, mirror, inc, negate
+from keys import shift, rev, mult, summer, rep, add, sub, div, dir, pow, rotL, rotR, mirror, inc, negate, paste
 from searchers import bfs
 
 
@@ -15,6 +15,8 @@ def parse(token):
         out = rev()
     elif token == "M":
         out = mirror()
+    elif token == "S":
+        out = paste()
     elif token == "<":
         out = rotL()
     elif token == ">":
@@ -51,12 +53,12 @@ def parse(token):
 def search(start, target, tokens):
     '''
     >>> search('1', '83', ['*9', '+2'])
-    [('*9', ('9', 0, ())), ('*9', ('81', 0, ())), ('+2', ('83', 0, ()))]
+    [('*9', ('9', 0, ('1', '9'))), ('*9', ('81', 0, ('1', '9', '81'))), ('+2', ('83', 0, ('1', '9', '81', '83')))]
     >>> search('0', '6', ['+5', '[+]1'])
-    [('[+]1', ('0', 1, ())), ('+6', ('6', 1, ()))]
+    [('[+]1', ('0', 1, ('0', '0'))), ('+6', ('6', 1, ('0', '0', '6')))]
     '''
     transitions = [parse(token) for token in tokens]
-    return bfs((start, 0, ()),
+    return bfs((start, 0, (start,)),
                target,
                transitions,
                lambda state, target: state[0] == target)
