@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-from keys import shift, rev, mult, summer, rep, add, sub, div, dir, pow, rotL, rotR, mirror, inc, negate, paste
+from keys import shift, rev, mult, summer, rep, add, sub, div, dir, pow, rotL, rotR, mirror, inc, negate, paste, inv10
 from searchers import bfs
 
 
@@ -17,6 +17,8 @@ def parse(token):
         out = mirror()
     elif token == "S":
         out = paste()
+    elif token == "I":
+        out = inv10()
     elif token == "<":
         out = rotL()
     elif token == ">":
@@ -55,15 +57,21 @@ def insert_store_locs(path):
     save = []
     index = len(path) - 1
     for trans, state in path[::-1]:
+        if state[0] == seek:
+            save.insert(0, index)
+            seek = None
+
         if "RESTORE:" in trans:
             seek = trans.split("RESTORE:")[1]
-        if state[0] == seek:
-            save.append(index)
+
         index -= 1
+
+    if seek != None:
+        save.insert(0, -1)
 
     for i, index in enumerate(save):
         i += index
-        path.insert(i + 1, ('SAVE', path[i][1]))
+        path.insert(i + 1, ('STORE', path[i][1]))
     return path
 
 
@@ -91,6 +99,6 @@ def main():
 
 
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
+    # import doctest
+    # doctest.testmod()
     main()
