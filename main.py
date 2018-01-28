@@ -3,6 +3,49 @@ from keys import shift, rev, mult, summer, rep, add, sub, div, dir, pow, rotL, r
 from searchers import bfs
 
 
+def portal(down, up):
+    def perform_portal(num, up, down):
+        '''
+        >>> perform_portal('1', 0, 1)
+        '1'
+        >>> perform_portal('10', 0, 1)
+        '1'
+        >>> perform_portal('123', 0, 2)
+        '24'
+        >>> perform_portal('123', 1, 2)
+        '33'
+        >>> perform_portal('123', 0, 1)
+        '6'
+        '''
+        if len(num) < down + 1:
+            return num
+        else:
+            chars = list(num)[::-1]
+            drop = chars[down]
+            del chars[down]
+            num = int("".join(chars)[::-1])
+            num += int(drop) * 10**up
+            return perform_portal(str(num), up, down)
+
+    def portal(func):
+        def inner(state):
+            next_state_or_states = func(state)
+            if (next_state_or_states is None or
+                    not isinstance(next_state_or_states, list) and "." in next_state_or_states[0]):
+                return None
+            if isinstance(next_state_or_states, list):
+                next_states = next_state_or_states
+                return [(perform_portal(next_state[0], up, down), next_state[1], next_state[2])
+                        for next_state in next_states if "." not in next_state[0]]
+            else:
+                next_state = next_state_or_states
+                return (perform_portal(next_state[0], up, down), next_state[1], next_state[2])
+        inner.label = func.label
+        return inner
+
+    return portal
+
+
 def parse(token):
     '''
     Given a token representing a key present in the game,
@@ -75,14 +118,16 @@ def insert_store_locs(path):
     return path
 
 
-def search(start, target, tokens):
+def search(start, target, tokens, portal_params=None):
     '''
     >>> search('1', '83', ['*9', '+2'])
-    [('*9', ('9', 0, ('1', '9'))), ('*9', ('81', 0, ('1', '9', '81'))), ('+2', ('83', 0, ('1', '9', '81', '83')))]
+    [('*9', ('9', 0, ('1', '9'))), ('*9', ('81', 0, ('1', '9', '81'))),
+      ('+2', ('83', 0, ('1', '9', '81', '83')))]
     >>> search('0', '6', ['+5', '[+]1'])
     [('[+]1', ('0', 1, ('0', '0'))), ('+6', ('6', 1, ('0', '0', '6')))]
     '''
-    transitions = [parse(token) for token in tokens]
+    portal_dec = portal(*portal_params) if portal_params else lambda x: x
+    transitions = [portal_dec(parse(token)) for token in tokens]
     return bfs((start, 0, (start,)),
                target,
                transitions,
@@ -93,9 +138,14 @@ def main():
     start = input()
     target = input()
     tokens = input().split(" ")
+    possible_portal_params = input().split(" ")
+    portal_params = ((int(possible_portal_params[0]), int(possible_portal_params[1]))
+                     if len(possible_portal_params) == 2
+                     else None)
+
     print(", ".join(func
                     for func, state
-                    in insert_store_locs(search(start, target, tokens))))
+                    in insert_store_locs(search(start, target, tokens, portal_params))))
 
 
 if __name__ == '__main__':
